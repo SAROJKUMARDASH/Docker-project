@@ -1,4 +1,4 @@
-Case Study 1:How to install a docker community edition
+Case Study 1:How to install a docker community edition (in normal user not in root )
 uname -a
 sudo apt-get update
 sudo apt-get install apt-transport-https ca-certificates curl software-properties-common 
