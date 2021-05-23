@@ -26,3 +26,391 @@ vi daemon.json
 Esc + :wq
 cat daemon.json 
 ls -ltr	
+
+Case Study 3:
+sudo su -
+docker pull nginx
+docker images
+docker run -dt -p 80:80 nginx
+docker ps
+curl 0.0.0.0:80
+docker stop <container_name/container_id>
+docker ps
+docker start <container_name/container_id>
+docker ps
+docker stop <container_name/container_id>
+docker container rm <container_name/container_id>
+docker ps
+docker images
+docker image rm nginx
+docker images
+
+
+
+
+Case Study 4: 
+
+mkdir myproject
+cd myproject
+vi Dockerfile
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install -y nginx
+COPY index.nginx-debian.html /var/www/html
+CMD nginx -g 'daemon off;'
+vi index.nginx-debian.html
+Welcome to the session !!!
+Esc + :wq
+docker build .
+docker images
+docker tag <Image_id> demo/nginx_ubuntu_iamge:version1.0
+
+
+
+Case Study 5:
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+docker ps
+docker pull ubuntu:16.04
+docker tag ubuntu:16.04 localhost:5000/my-ubuntu
+docker images
+docker push localhost:5000/my-ubuntu
+
+
+
+
+
+
+
+
+
+
+
+Case Study 6
+
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  addr: :5000
+  headers:
+    X-Content-Type-Options: [nosniff]
+auth:
+  htpasswd:
+    realm: basic-realm
+    path: /etc/registry
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+    threshold: 3
+
+
+
+
+docker run -d -p 8000:80 --restart=always --name registry3 -v 'pwd'/config.yml:/etc/docker/config.yml registry:2
+
+docker run -d -p 8000:80 --restart=always --name registry3 -v /etc/docker/config.yml registry:2
+docker run --entrypoint htpasswd httpd:2.4 -Bbn imnitish p@ssw@rd > auth/httpd.htpasswd
+/etc/registry folder was missing ( which was required as per the config.yml file)
+
+root@ip-172-31-23-166:~# docker run --entrypoint htpasswd httpd:2.4 -Bbn imnitish p@ssw@rd > auth/httpd.htpasswd
+-su: auth/httpd.htpasswd: No such file or directory
+docker run -d -p 8000:80 --restart=always --name registry4 -v `pwd`/config.yml:/etc/docker/config.yml registry:2
+docker run -d -p 8003:80 --restart=always --name registry7 -v `pwd`/config.yml:/etc/docker/config.yml registry:2
+root@ip-172-31-23-166:~# docker run --entrypoint htpasswd httpd:2.4 -Bbn imnitish p@ssw@rd > /etc/registry/httpd.htpasswd
+Unable to find image 'httpd:2.4' locally
+2.4: Pulling from library/httpd
+F7ec5a41d6
+
+docker login localhost:5000
+
+
+
+
+Repository only have link of image not complete image:
+
+root@ip-172-31-1-148:/home/labsuser# docker image rm 0362c015c2bb
+Error response from daemon: conflict: unable to delete 0362c015c2bb (must be forced) - image is referenced in multiple repositories
+
+root@ip-172-31-1-148:/home/labsuser# docker image rm 0362c015c2bb -f
+Untagged: demo/nginx:v1
+Untagged: harishkaushik/nginx_new:v1
+Untagged: harishkaushik/nginx_new@sha256:3a9d125891f290a21aa00e9505b31b3f7c017ca2941cb8de4d1cc568b608e364
+Deleted: sha256:0362c015c2bba75bbfe4ae0f265c6fba553c26264454ecf0adce58d1627e891c
+Deleted: sha256:ff2f3a198b4b73f400eae8a3f68941b2bd9fbb208d663f7e4ca60faefe06161b
+Deleted: sha256:cb11a7382fc5cbf179b29a8b9ce17513a7e39e64baa681a58ca3df6d3ed9d32d
+Deleted: sha256:dbad7cee4e24a074521c44ec621d3755a4c0d535f1bb1f43f66299a0a15e9263
+Deleted: sha256:a18ecdd497e04ea0ba5e21885845c5c5cf3d4d83b1d6d58946cadf72f58d395a
+Deleted: sha256:49cccbf8cb0f4f935834e32d98ce36d3429d5c8c64825d830d950422cb0ac5ba
+Deleted: sha256:63d4f02b24aa842fd02035c33c046f25a62f9fd525d5a1e40a4074543cadd69e
+
+
+
+root@ip-172-31-1-148:/home/labsuser# docker login localhost:5000
+Authenticating with existing credentials...
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+root@ip-172-31-1-148:/home/labsuser# docker images
+REPOSITORY                 TAG                 IMAGE ID            CREATED             SIZE
+ubuntu                     16.04               aefd7f02ae24        40 hours ago        134MB
+localhost:5000/my-ubuntu   latest              aefd7f02ae24        40 hours ago        134MB
+ubuntu                     latest              7e0aa2d69a15        40 hours ago        72.7MB
+registry                   2                   1fd8e1b0bb7e        10 days ago         26.2MB
+httpd                      2.4                 0b932df43057        2 weeks ago         138MB
+
+
+
+Case Study 7:
+
+
+mkdir pythonapp
+
+cd pythonapp/
+
+vi app.py
+from flask import Flask
+import os
+import socketapp = Flask(__name__)@app.route(“/”)def hello():
+html = “<h3>Hello {name}!</h3>” \
+            “<b>Hostname:</b> {hostname}<br/>”
+return html.format(name=os.getenv(“NAME”, “world”), hostname=socket.gethostname()) if __name__ == “__main__”:
+     app.run(host=’0.0.0.0', port=80)
+
+
+vi requirements.txt
+Flask
+
+
+vi Dockerfile
+FROM python
+WORKDIR /app
+ADD . /app
+RUN pip install -r requirements.txt
+EXPOSE 80
+ENV NAME world
+CMD ["python","app.py"]
+
+docker build -t python_image 
+
+docker images
+
+docker login
+
+docker tag python_image <USER_NAME>/python_image_simplilearn:version1
+
+docker push imnitish/python_image_simplilearn:version1
+
+Check from DockerHub
+
+
+Case Study 8:
+
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+docker pull ubuntu:16.04
+docker tag ubuntu:16.04 localhost:5000/my-ubuntu
+docker push localhost:5000/my-ubuntu
+docker pull nginx:latest
+docker image inspect nginx:latest
+docker tag nginx:latest localhost:5000/mynginx
+docker image inspect nginx:latest
+docker images
+docker image rm nginx:latest
+docker image prune --all
+docker images
+
+
+Case Study 9:
+
+docker pull ubuntu:14.04
+docker image tag ubuntu:14.04 localhost:5000/ubuntu_image
+docker images
+docker push localhost:5000/ubuntu_image
+docker images
+docker rmi ubuntu:14.04
+docker images
+docker pull localhost:5000/ubuntu_image
+docker images
+docker rmi -f $(docker images -q)
+
+
+
+01-May-2020
+
+
+
+Demo 10
+
+docker network ls
+docker network create mynetwork1
+docker network ls
+docker network inspect mynetwork1
+
+Demo 11
+
+docker network create my-net1
+docker network rm  my-net1
+docker network create my-net
+docker create --name my-nginx --network my-net --publish 8080:80 nginx:latest
+docker container inspect my-nginx
+docker network disconnect my-net my-nginx
+docker container inspect my-nginx
+
+Look for the below settings:
+        "NetworkSettings": {
+            "Bridge": "",
+
+
+
+            "SandboxID": "",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {},
+            "SandboxKey": "",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "my-net": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gate
+
+Demo 12
+ docker run --rm -d --network host --name nginx_container1 nginx
+ docker ps
+ curl http://localhost:80/
+ docker network ls
+ ip addr show
+ netstat -tulpn |grep:80
+ netstat -tulpn |grep :80
+ docker container inspect nginx_container1
+ docker container stop nginx_container1
+ docker container inspect nginx_container1
+
+
+Demo 13
+
+docker network create -d macvlan --subnet=172.16.86.0/24 --gateway=172.16.86.1 -o parent=docker0 macvlan-net
+docker network ls
+docker network inspect macvlan-net
+docker run --rm  --network macvlan-net --name macvlan-alpine alpine:latest ash
+docker container inspect macvlan-alpine
+docker ps
+docker ps -all
+docker run --rm  --network macvlan-net --name macvlan-alpine alpine:latest ash
+docker ps -all
+docker images
+docker run --rm  --network macvlan-net --name macvlan-alpine alpine:latest
+docker ps -a
+docker run --network macvlan-net --name macvlan-alpine alpine:latest
+docker network ls
+docker run --network macvlan-net --name macvlan-alpine1 alpine:latest
+docker ps -a
+docker start 6ded7842108b
+docker ps -a
+docker ps
+docker image
+docker network create -d macvlan --subnet=172.31.23.0/24 --gateway=172.31.23.166 
+
+
+Demo 14
+
+docker swarm init
+docker node ls
+docker service create --name myweb --replicas 3 nginx
+docker ps
+docker service create --name myservice --mode global alpine top
+docker service ls
+docker service ps myservice
+docker service ps myweb
+
+DEMO
+
+MKE Demo 
+########
+Worker Node 2 --- > ssh-keygen
+cd .ssh
+cat id_rsa.pub
+Copy the content
+Go To Master Node 
+touch .ssh/authorized_keys
+chmod -R 700 .ssh
+vi .ssh/authorized_keys
+Paste the content
+
+Go to Worker Node 1
+touch .ssh/authorized_keys
+chmod -R 700 .ssh
+vi .ssh/authorized_keys
+Paste the content
+
+On Worker Node -2
+ssh labsuser@ip-172-31-23-166
+ssh labsuser@ip-172-31-20-82
+sudo wget https://github.com/Mirantis/launchpad/releases/latest/download/launchpad-linux-x64
+mv launchpad-linux-x64 launchpad
+sudo mv launchpad /usr/bin
+sudo chmod 777 /usr/bin/launchpad
+launchpad version
+vi launchpad.yml
+	
+apiVersion: launchpad.mirantis.com/mke/v1.1
+kind: mke
+metadata:
+   name: my-mke
+spec:
+  mke:
+    adminUsername: admin
+    adminPassword: passw0rd!
+    installFlags:
+      - --default-node-orchestrator=kubernetes
+      - --pod-cidr 10.0.0.0/16
+      - --force-minimums
+  hosts:
+  - address: 172.31.4.216  #Private IP address of the manager node
+    role: manager
+    ssh:
+      keyPath: /home/labsuser/.ssh/id_rsa
+      user: labsuser
+    privateInterface: eth0
+  - address: 172.31.13.214      #Private IP address of the worker1 node
+    role: worker
+    ssh:
+      keyPath: /home/labsuser/.ssh/id_rsa
+      user: labsuser
+    privateInterface: eth0
+
+launchpad register
+launchpad apply
+
+
+
+kubectl create deployment nginx --image=nginx
+kubectl scale --replicas=5 deploymnet/nginx
+kubectl get pods
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8PcXj3NpT3Fl9CP3RpjdiQHCsOp4yVkgfu3f6m6GvlvhXIE6ezpQEjrtDCF3AGyEXX0sa71YjegbXejm/iED+COngEO8BsD5SeenutxM1eNQ3mcFnUCWrItk9kVeooJbUWfjLHFzvMmczpEFd7pEgc4ZFUeXZQcBpBJzYoGj3Z2Rh1mts8MPJkl6yHyGbwx9QBX/mykzE+xdsQRWWx7mNvkwxibZlQZXlnrDuDw0f5arvBcZJO7Cuz+lqqxBQ00otHiYgKmIVuLg0RcUOnof3sh0OfmMGmpMh4AWFAvC44IVaXO1TcORFxJUAC4ox2WAcwvuH4ls6VhLn+C7NAr8l labsuser@ip-172-31-6-227
+
